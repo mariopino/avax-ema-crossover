@@ -65,7 +65,7 @@ print(bt.run())
 optimization_results, heatmap = bt.optimize(
     n1=range(2, 52, 2),  # Fast EMA from 2 to 50, step 2
     n2=range(10, 202, 2),  # Slow EMA from 10 to 200, step 2
-    maximize='Return [%]',  # Maximize Sortino Ratio
+    maximize='Return [%]',  # Maximize Return
     constraint=lambda p: p.n1 < p.n2,  # Ensure fast EMA is shorter than slow EMA
     return_heatmap=True # Return heatmap data
 )
