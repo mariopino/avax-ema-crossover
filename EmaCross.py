@@ -5,20 +5,23 @@ import numpy as np
 import pandas as pd
 import pandas_ta as ta
 
+#
 # Set up parameters
+#
+
+ticker_name = "AVAX-USD"  # Ticker name for AVAX-USD
 cash = 10000  # Initial cash amount in USD
 commission = 0.001  # Commission per trade
 exclusive_orders = True  # Only one order at a time
+period = '30d'  # Period for data download
+interval = '30m'  # Interval for data download
+n1 = 40  # Fast EMA
+n2 = 170 # Slow EMA
 
-# Download and prepare AVAX-USD data from Yahoo Finance
-ticker_name = "AVAX-USD"
-data = yf.download(ticker_name, start='2020-01-01', end='2025-04-20', interval='1d')
+# Download and prepare data from Yahoo Finance
+data = yf.download(ticker_name, period=period, interval=interval)
 data = data[['Open', 'High', 'Low', 'Close', 'Volume']]
 data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
-
-# Initial run moving averages
-n1 = 5   # Fast
-n2 = 10  # Slow
 
 # Uncomment the following line to see the data before running the backtest
 # print(data.tail())
@@ -33,14 +36,13 @@ class EmaCross(Strategy):
         self.ema2 = self.I(ta.ema, close, self.n2)
 
     def next(self):
-
         if crossover(self.ema1, self.ema2):
-            # LONG: If the fast EMA crosses above the slow EMA, close the position and buy
+            # LONG: If the fast EMA crosses above the slow EMA
             if self.position.is_short:
                 self.position.close()
             self.buy(sl=self.data.Close[-1] * 0.95)
         elif crossover(self.ema2, self.ema1):
-            # SHORT: If the fast EMA crosses below the slow EMA, close the position and sell
+            # SHORT: If the fast EMA crosses below the slow EMA
             if self.position.is_long:
                 self.position.close()
             self.sell(sl=self.data.Close[-1] * 1.05)
@@ -52,7 +54,7 @@ bt = Backtest(
     cash=cash,
     commission=commission,
     exclusive_orders=exclusive_orders,
-    trade_on_close=True # Use close price for trades, could be dangerous if there's a big gap between close and open
+    trade_on_close=True # Use close price for trades, could be dangerous if there's a big gap between close and open (e.g. weekends)
 )
 
 # Print results of the backtest
